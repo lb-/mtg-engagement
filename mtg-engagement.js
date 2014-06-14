@@ -51,9 +51,13 @@ if (Meteor.isClient) {
     return "fa-times-circle-o text-danger";
   });
   UI.registerHelper( 'playerIsWinner', function( player ) {
-    //1. check the match is COMPLETE
-    //2. check that player player total is greater than not
-    return false;
+    console.log(this, player);
+    if ( _.some( this.games, function( i ) { i === null } ) ) {
+      return false;
+      console.log('not completed');
+    } else {
+      return _.every( this.games, function( i ) { i === player } );
+    }
   });
 }
 
