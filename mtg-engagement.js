@@ -1,14 +1,59 @@
 if (Meteor.isClient) {
-  Template.hello.greeting = function () {
-    return "Welcome to mtg-engagement.";
-  };
+  //TEMP DATA
+  UI.registerHelper('matches', function() {
+    return [
+      {
+        playerX: 'LB',
+        playerY: 'Andrew',
+        games: [ 'x', 'y', null],
+      },
+      {
+        playerX: 'LB',
+        playerY: 'Joe',
+        games: ['x','y',null],
+      },
+      {
+        playerX: 'Philip',
+        playerY: 'Poo Face',
+        games: ['y','x','x'],
+      },
+      {
+        playerX: 'Samuel',
+        playerY: 'Artyman',
+        games: ['x','x','x'],
+      }
+    ];
+  });
 
-  Template.hello.events({
-    'click input': function () {
-      // template data, if any, is available in 'this'
-      if (typeof console !== 'undefined')
-        console.log("You pressed the button");
+  //Actual Helpers
+  UI.registerHelper( 'matchCompletionPercent', function() {
+    var gameTotals = _.countBy( this.games, function(game) {
+      if ( game === null ) {
+        return 'inProgress';
+      }
+      return 'completed';
+    });
+    return ( gameTotals.completed / 3 ) * 100;
+  });
+  UI.registerHelper( 'matchCompletedProgressBarClass', function() {
+    //console.log(this);
+    if ( _.contains( this.games, null ) ) {
+      return "progress-bar-info";
     }
+    return "progress-bar-success";
+  });
+  UI.registerHelper( 'gameIcon', function( player ) {
+    if ( this[0] === undefined) {
+      return "fa-circle-thin";
+    } else if ( this[0] === player ) {
+      return "fa-check-circle-o text-success";
+    }
+    return "fa-times-circle-o text-danger";
+  });
+  UI.registerHelper( 'playerIsWinner', function( player ) {
+    //1. check the match is COMPLETE
+    //2. check that player player total is greater than not
+    return false;
   });
 }
 

@@ -1,0 +1,33 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "bootstrap-united": {
+        "version": "3.1.1-1"
+      },
+      "moment": {
+        "version": "2.6.0"
+      },
+      "font-awesome": {
+        "version": "4.1.0"
+      }
+    },
+    "packages": {
+      "bootstrap-united": {
+        "git": "https://github.com/JarnoNijboer/meteor-bootstrap-united.git",
+        "tag": "v3.1.1-1",
+        "commit": "50979b02f9e19fa9135693c5387962e6b693ca87"
+      },
+      "moment": {
+        "git": "https://github.com/acreeger/meteor-moment.git",
+        "tag": "v2.6.0",
+        "commit": "26156df681750fd6e6ed77043eef32b6653ebbdf"
+      },
+      "font-awesome": {
+        "git": "https://github.com/nate-strauser/meteor-font-awesome.git",
+        "tag": "v4.1.0",
+        "commit": "ce6b1e92715d1938babc5d69c655c17e387f5926"
+      }
+    }
+  }
+}
