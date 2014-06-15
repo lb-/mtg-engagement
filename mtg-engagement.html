@@ -9,22 +9,29 @@
     <div class="container">
       {{>nav}}
       {{>intro}}
-      {{#each rounds}}
-        <div>
-          <div class="page-header">
-            <h1>{{getOrdinalNumber round}} Round <small>{{totalMatches}} matches</small></h1>
-          </div>
-          <div class="row">
-            {{#each matches}}
-            <div class="col-lg-4">
-              {{>match}}
-            </div>
-            {{/each}}
-          </div>
-        </div>
-      {{/each}}
+      {{>rounds}}
     </div>
 </body>
+
+<template name="rounds">
+  {{#each rounds}}
+    <div>
+      <div class="page-header">
+        <h1>{{getOrdinalNumber round}} Round <small>{{totalMatches}} matches</small></h1>
+      </div>
+      <div class="row">
+        {{#each matches}}
+        <div class="col-lg-4">
+          {{>match}}
+        </div>
+        {{/each}}
+        <div class="col-lg-4">
+          {{>newMatch}}
+        </div>
+      </div>
+    </div>
+  {{/each}}
+</template>
 
 <template name="match">
   <div class="panel panel-default">
@@ -91,6 +98,28 @@
           {{playerY}}
         </h2>
       {{/if}}
+    </div>
+  </div>
+</template>
+
+<template name="newMatch">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="text-center">
+        New Game in {{getOrdinalNumber round}} Round
+      </h3>
+    </div>
+    <ul class="list-group">
+      <li class="list-group-item">
+        <input class="form-control" type="text" placeholder="Player X" data-player="x">
+      </li>
+      <li class="list-group-item">
+        <input class="form-control" type="text" placeholder="Player Y" data-player="y">
+      </li>
+    </ul>
+    <div class="panel-footer">
+      <button class="btn btn-info btn-lg btn-block insert-game">Add</button>
+      <div class="alert alert-warning player-name-warning" style="display:none;">Player's Names MUST not be empty.</div>
     </div>
   </div>
 </template>

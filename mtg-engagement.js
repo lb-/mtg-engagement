@@ -1,45 +1,57 @@
 if (Meteor.isClient) {
   //TEMP DATA
-  var matches =  [
-    {
-      playerX: 'LB',
-      playerY: 'Andrew',
-      round: 1,
-      games: [ 'x', 'y', null],
-    },
-    {
-      playerX: 'LB',
-      playerY: 'Joe',
-      round: 1,
-      games: ['x','y',null],
-    },
-    {
-      playerX: 'Philip',
-      playerY: 'Poo Face',
-      round: 2,
-      games: ['y','x','x'],
-    },
-    {
-      playerX: 'Samuel',
-      playerY: 'Artyman',
-      round: 2,
-      games: ['x','x','x'],
-    }
-  ];
-  UI.registerHelper('rounds', function() {
-    var groupedMatches = _.groupBy( matches, function( match ) {
-      return match.round;
-    });
+  // var matches =  [
+  //   {
+  //     playerX: 'LB',
+  //     playerY: 'Andrew',
+  //     round: 1,
+  //     games: [ 'x', 'y', null],
+  //   },
+  //   {
+  //     playerX: 'LB',
+  //     playerY: 'Joe',
+  //     round: 1,
+  //     games: ['x','y',null],
+  //   },
+  //   {
+  //     playerX: 'Philip',
+  //     playerY: 'Poo Face',
+  //     round: 2,
+  //     games: ['y','x','x'],
+  //   },
+  //   {
+  //     playerX: 'Samuel',
+  //     playerY: 'Artyman',
+  //     round: 2,
+  //     games: ['x','x','x'],
+  //   }
+  // ];
 
-    var rounds = [];
-    _.each( groupedMatches, function( value, key, list ) {
-      rounds.push({
-        round: key,
-        matches: value,
+  //var matches = Matches.find({}).fetch();
+
+
+  Template.rounds.rounds = function() {
+    Meteor.subscribe( "matches");
+
+    var getRounds = function( matches ) {
+      var groupedMatches = _.groupBy( matches, function( match ) {
+        return match.round;
       });
-    });
-    return rounds;
-  });
+
+      var rounds = [];
+      _.each( groupedMatches, function( value, key, list ) {
+        rounds.push({
+          round: key,
+          matches: value,
+        });
+      });
+
+      return rounds;
+    }
+
+    return getRounds( Matches.find().fetch() );
+
+  }
 
   //Actual Helpers
   UI.registerHelper( 'totalMatches', function() {
@@ -76,10 +88,10 @@ if (Meteor.isClient) {
     return "fa-times-circle-o text-danger";
   });
   UI.registerHelper( 'playerIsWinner', function( player ) {
-    console.log(this, player);
+    //console.log(this, player);
     if ( _.some( this.games, function( i ) { return i === null } ) ) {
       return false;
-      console.log('not completed');
+      //console.log('not completed');
     }
     return _.every( this.games, function( i ) { return i === player } );
   });
@@ -90,10 +102,63 @@ if (Meteor.isClient) {
    return num +(s[(v-20)%10]||s[v]||s[0]);
   });
 
+  Template.newMatch.events({
+    'click .insert-game' : function( event, template ) {
+      console.log(this, event, template);
+
+      var newGame = {};
+      newGame.round = this.round;
+      newGame.matches = [null, null, null];
+      newGame.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
+      newGame.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
+      if ( ( newGame.playerX === "" ) || ( newGame.playerY === "" ) ) {
+        $(template.firstNode).find(".player-name-warning").show();
+      } else {
+        $(template.firstNode).find(".player-name-warning").hide();
+      }
+      //Meteor.method (UPDATE)
+      console.log('newGame', newGame);
+
+    },
+  });
+
 }
 
 if (Meteor.isServer) {
+
+  Meteor.publish( "matches", function() {
+    return Matches.find({});
+  });
+
   Meteor.startup(function () {
-    // code to run on server at startup
+    if ( Matches.find({}).count() === 0 ) {
+      //console.log('no matches found');
+
+      Matches.insert({
+        playerX: 'LB',
+        playerY: 'Andrew',
+        round: 1,
+        games: [ 'x', 'y', null],
+      });
+      Matches.insert({
+        playerX: 'LB',
+        playerY: 'Joe',
+        round: 1,
+        games: ['x','y',null],
+      });
+      Matches.insert({
+        playerX: 'Philip',
+        playerY: 'Poo Face',
+        round: 2,
+        games: ['y','x','x'],
+      });
+      Matches.insert({
+        playerX: 'Samuel',
+        playerY: 'Artyman',
+        round: 2,
+        games: ['x','x','x'],
+      });
+      //console.log(Matches.find({}).count(), ' matches found');
+    }
   });
 }
