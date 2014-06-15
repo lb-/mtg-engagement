@@ -61,10 +61,17 @@
       </li>
     </ul>
     <div class="panel-footer">
-      <h2 class="text-center alert-warning">
-        {{playerY}}
-        <i class="fa fa-lg fa-bomb status-bottom"></i>
-      </h2>
+      {{#if playerIsWinner 'y'}}
+        <h2 class="text-center alert-success">
+          <i class="fa fa-lg fa-bolt status-top"></i>
+          {{playerY}}
+        </h2>
+      {{else}}
+        <h2 class="text-center alert-warning">
+          {{playerY}}
+          <i class="fa fa-lg fa-bomb status-bottom"></i>
+        </h2>
+      {{/if}}
     </div>
   </div>
 </template>

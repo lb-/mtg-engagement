@@ -52,12 +52,11 @@ if (Meteor.isClient) {
   });
   UI.registerHelper( 'playerIsWinner', function( player ) {
     console.log(this, player);
-    if ( _.some( this.games, function( i ) { i === null } ) ) {
+    if ( _.some( this.games, function( i ) { return i === null } ) ) {
       return false;
       console.log('not completed');
-    } else {
-      return _.every( this.games, function( i ) { i === player } );
     }
+    return _.every( this.games, function( i ) { return i === player } );
   });
 }
 
