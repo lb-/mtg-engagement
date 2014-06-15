@@ -65,8 +65,15 @@
         </div>
       </li>
       <li class="list-group-item">
-        <div class="progress">
-          <div class="progress-bar {{matchCompletedProgressBarClass}}" role="progressbar" aria-valuenow="{{matchCompletionPercent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{matchCompletionPercent}}%">
+        <div class="row">
+          <div class="col-xs-9">
+            <div class="progress">
+              <div class="progress-bar {{matchCompletedProgressBarClass}}" role="progressbar" aria-valuenow="{{matchCompletionPercent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{matchCompletionPercent}}%">
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-3">
+            <button class="btn btn-block btn-xs btn-danger remove-match">Remove</button>
           </div>
         </div>
       </li>
@@ -118,8 +125,9 @@
       </li>
     </ul>
     <div class="panel-footer">
-      <button class="btn btn-info btn-lg btn-block insert-game">Add</button>
+      <button class="btn btn-info btn-lg btn-block insert-match">Add</button>
       <div class="alert alert-warning player-name-warning" style="display:none;">Player's Names MUST not be empty.</div>
+      <div class="alert alert-warning player-name-duplicate-warning" style="display:none;">Player's Names MUST not be the same.</div>
     </div>
   </div>
 </template>

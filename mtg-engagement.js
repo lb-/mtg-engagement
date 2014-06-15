@@ -103,25 +103,37 @@ if (Meteor.isClient) {
   });
 
   Template.newMatch.events({
-    'click .insert-game' : function( event, template ) {
-      console.log(this, event, template);
-
-      var newGame = {};
-      newGame.round = this.round;
-      newGame.matches = [null, null, null];
-      newGame.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
-      newGame.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
-      if ( ( newGame.playerX === "" ) || ( newGame.playerY === "" ) ) {
+    'click .insert-match' : function( event, template ) {
+      //console.log(this, event, template);
+      var newMatch = {};
+      newMatch.round = this.round;
+      newMatch.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
+      newMatch.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
+      if ( ( newMatch.playerX === "" ) || ( newMatch.playerY === "" ) ) {
         $(template.firstNode).find(".player-name-warning").show();
+      } else if ( newMatch.playerX.toUpperCase() === newMatch.playerY.toUpperCase() ) {
+        $(template.firstNode).find(".player-name-duplicate-warning").show();
       } else {
         $(template.firstNode).find(".player-name-warning").hide();
+        $(template.firstNode).find(".player-name-duplicate-warning").hide();
+        Meteor.call( 'insertMatch', newMatch, function( error, result ) {
+          if ( error !== undefined ) {
+            console.log( 'error', error );
+          }
+        });
       }
-      //Meteor.method (UPDATE)
-      console.log('newGame', newGame);
-
-    },
+    }
   });
-
+  Template.match.events({
+    'click .remove-match' : function( event, template ) {
+      //console.log(this, event, template);
+      Meteor.call( 'removeMatch', this._id, function() {
+        if ( error !== undefined ) {
+          console.log( 'error', error );
+        }
+      });
+    },
+  })
 }
 
 if (Meteor.isServer) {
@@ -129,6 +141,17 @@ if (Meteor.isServer) {
   Meteor.publish( "matches", function() {
     return Matches.find({});
   });
+
+  Meteor.methods({
+    insertMatch: function( newMatch ) {
+      newMatch.created = new Date();
+      newMatch.games = [null, null, null];
+      Matches.insert( newMatch );
+    },
+    removeMatch: function( _id ) {
+      Matches.remove({ _id: _id });
+    }
+  })
 
   Meteor.startup(function () {
     if ( Matches.find({}).count() === 0 ) {
