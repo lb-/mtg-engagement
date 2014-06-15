@@ -9,28 +9,41 @@
     <div class="container">
       {{>nav}}
       {{>intro}}
-      <div class="row">
-        {{#each matches}}
-        <div class="col-lg-4">
-          {{>match}}
+      {{#each rounds}}
+        <div>
+          <div class="page-header">
+            <h1>{{getOrdinalNumber round}} Round <small>{{totalMatches}} matches</small></h1>
+          </div>
+          <div class="row">
+            {{#each matches}}
+            <div class="col-lg-4">
+              {{>match}}
+            </div>
+            {{/each}}
+          </div>
         </div>
-        {{/each}}
-      </div>
+      {{/each}}
     </div>
 </body>
 
 <template name="match">
   <div class="panel panel-default">
     <div class="panel-heading">
-      {{#if playerIsWinner 'x'}}
-        <h2 class="text-center alert-success">
-          <i class="fa fa-lg fa-bolt status-top"></i>
-          {{playerX}}
-        </h2>
+      {{#if matchCompleted}}
+        {{#if playerIsWinner 'x'}}
+          <h2 class="text-center alert-success">
+            <i class="fa fa-lg fa-bolt status-top"></i>
+            {{playerX}}
+          </h2>
+        {{else}}
+          <h2 class="text-center alert-warning">
+            {{playerX}}
+            <i class="fa fa-lg fa-bomb status-bottom"></i>
+          </h2>
+        {{/if}}
       {{else}}
-        <h2 class="text-center alert-warning">
+        <h2 class="text-center">
           {{playerX}}
-          <i class="fa fa-lg fa-bomb status-bottom"></i>
         </h2>
       {{/if}}
     </div>
@@ -61,15 +74,21 @@
       </li>
     </ul>
     <div class="panel-footer">
-      {{#if playerIsWinner 'y'}}
-        <h2 class="text-center alert-success">
-          <i class="fa fa-lg fa-bolt status-top"></i>
-          {{playerY}}
-        </h2>
+      {{#if matchCompleted}}
+        {{#if playerIsWinner 'y'}}
+          <h2 class="text-center alert-success">
+            <i class="fa fa-lg fa-bolt status-top"></i>
+            {{playerY}}
+          </h2>
+        {{else}}
+          <h2 class="text-center alert-warning">
+            {{playerY}}
+            <i class="fa fa-lg fa-bomb status-bottom"></i>
+          </h2>
+        {{/if}}
       {{else}}
-        <h2 class="text-center alert-warning">
+        <h2 class="text-center">
           {{playerY}}
-          <i class="fa fa-lg fa-bomb status-bottom"></i>
         </h2>
       {{/if}}
     </div>
