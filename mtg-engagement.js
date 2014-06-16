@@ -140,7 +140,7 @@ if (Meteor.isClient) {
   Template.match.events({
     'click .remove-match' : function( event, template ) {
       //console.log(this, event, template);
-      Meteor.call( 'removeMatch', this._id, function() {
+      Meteor.call( 'removeMatch', this._id, function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
         }
@@ -174,7 +174,7 @@ if (Meteor.isClient) {
 
       //console.log('this',this, 'currentPlayer', currentPlayer, 'otherPlayer', otherPlayer, 'newGameState', newGameState)
       //save the update usinng a method
-      Meteor.call( "updateGame", this.matchId, this.index, newGameState, function() {
+      Meteor.call( "updateGame", this.matchId, this.index, newGameState, function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
         }
@@ -199,9 +199,9 @@ if (Meteor.isServer) {
       Matches.remove({ _id: _id });
     },
     updateGame: function( matchId, gameIndex, gameState ) {
-      console.log( matchId, gameIndex, gameState );
-      // to do
-      //Matches.update({ _id: matchId }, { games[gameIndex] : gameState});
+      var update = {};
+      update['games.' + gameIndex] = gameState;
+      var x = Matches.update({ _id: matchId }, { $set : update });
     },
   })
 
