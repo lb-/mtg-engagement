@@ -106,7 +106,7 @@ Template.players.players = function() {
       return 'lost'
       });
 
-    if ( totals.won > totals.lost ) {
+    if ( ( totals.won == 3 ) || ( totals.won > totals.lost ) ) {
       return true;
     }
     return false;
