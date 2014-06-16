@@ -175,11 +175,9 @@ Template.players.players = function() {
 }
 
 if (Meteor.isServer) {
-
   Meteor.publish( "matches", function() {
     return Matches.find({});
   });
-
   Meteor.methods({
     insertMatch: function( newMatch ) {
       newMatch.created = new Date();
@@ -198,8 +196,6 @@ if (Meteor.isServer) {
 
   Meteor.startup(function () {
     if ( Matches.find({}).count() === 0 ) {
-      //console.log('no matches found');
-
       Matches.insert({
         playerX: 'LB',
         playerY: 'Andrew',
