@@ -66,6 +66,36 @@ if (Meteor.isClient) {
 
   }
 
+
+Template.players.players = function() {
+  Meteor.subscribe( "matches");
+
+  var getPlayers = function( matches ) {
+    var playerXGrouped = _.groupBy( matches, function( match ) {
+      return match.playerX;
+    });
+    var playerYGrouped = _.groupBy( matches, function( match ) {
+      return match.playerY;
+    });
+    console.log(playerXGrouped)
+
+    players = [];
+    _.each( playerYGrouped, function( matches, playerName, list) {
+      players.push({name:playerName, matches: matches});
+    });
+    _.each( playerXGrouped, function( matches, playerName, list) {
+      players.push({name:playerName, matches: matches});
+    })
+    //[{name:"joe"},{name:'andrew'}];
+
+    return players;
+    // to do
+  }
+
+  return getPlayers( Matches.find().fetch() );
+
+}
+
   //Actual Helpers
   UI.registerHelper( 'totalMatches', function() {
     return this.matches.length;
