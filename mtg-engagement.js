@@ -69,12 +69,12 @@ Template.players.players = function() {
 
   UI.registerHelper( 'matchCompleted', function() {
     return _.every( this.games, function( game ) {
-      return game !== null;
+      return game.state !== null;
     });
   });
   UI.registerHelper( 'matchCompletionPercent', function() {
     var gameTotals = _.countBy( this.games, function(game) {
-      if ( game === null ) {
+      if ( game.state === null ) {
         return 'inProgress';
       }
       return 'completed';
@@ -96,18 +96,26 @@ Template.players.players = function() {
     return "fa-times-circle-o text-danger";
   });
   UI.registerHelper( 'playerIsWinner', function( player ) {
-    if ( _.some( this.games, function( i ) { return i === null } ) ) {
+    if ( _.some( this.games, function( i ) { return i.state === null } ) ) {
       return false;
     }
-    return _.every( this.games, function( i ) { return i === player } );
-  });
+    var totals = _.countBy( this.games, function( i ) {
+      if ( i.state === player ) {
+        return 'won';
+      }
+      return 'lost'
+      });
 
+    if ( totals.won > totals.lost ) {
+      return true;
+    }
+    return false;
+  });
   UI.registerHelper( 'getOrdinalNumber', function( num ) {
    var s = ["th","st","nd","rd"]
    var v = num % 100;
    return num +(s[(v-20)%10]||s[v]||s[0]);
   });
-
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
       var newMatch = {};
