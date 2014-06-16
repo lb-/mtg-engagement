@@ -1,35 +1,4 @@
 if (Meteor.isClient) {
-  //TEMP DATA
-  // var matches =  [
-  //   {
-  //     playerX: 'LB',
-  //     playerY: 'Andrew',
-  //     round: 1,
-  //     games: [ 'x', 'y', null],
-  //   },
-  //   {
-  //     playerX: 'LB',
-  //     playerY: 'Joe',
-  //     round: 1,
-  //     games: ['x','y',null],
-  //   },
-  //   {
-  //     playerX: 'Philip',
-  //     playerY: 'Poo Face',
-  //     round: 2,
-  //     games: ['y','x','x'],
-  //   },
-  //   {
-  //     playerX: 'Samuel',
-  //     playerY: 'Artyman',
-  //     round: 2,
-  //     games: ['x','x','x'],
-  //   }
-  // ];
-
-  //var matches = Matches.find({}).fetch();
-
-
   Template.rounds.rounds = function() {
     Meteor.subscribe( "matches");
 
@@ -47,10 +16,8 @@ if (Meteor.isClient) {
             gameWithContext.state = game;//x, y, undefined
             gameWithContext.index = index;
             gameWithContext.matchId = match._id;
-            //console.log( game, gameWithContext );
             gamesWithContext.push( gameWithContext );
           });
-          //console.log(match, index);
           match.games = gamesWithContext;
         });
         rounds.push({
@@ -85,8 +52,7 @@ Template.players.players = function() {
     });
     _.each( playerXGrouped, function( matches, playerName, list) {
       players.push({name:playerName, matches: matches});
-    })
-    //[{name:"joe"},{name:'andrew'}];
+    });
 
     return players;
     // to do
@@ -116,7 +82,6 @@ Template.players.players = function() {
     return ( gameTotals.completed / 3 ) * 100;
   });
   UI.registerHelper( 'matchCompletedProgressBarClass', function() {
-    //console.log(this);
     if ( _.contains( this.games, null ) ) {
       return "progress-bar-info";
     }
@@ -131,10 +96,8 @@ Template.players.players = function() {
     return "fa-times-circle-o text-danger";
   });
   UI.registerHelper( 'playerIsWinner', function( player ) {
-    //console.log(this, player);
     if ( _.some( this.games, function( i ) { return i === null } ) ) {
       return false;
-      //console.log('not completed');
     }
     return _.every( this.games, function( i ) { return i === player } );
   });
@@ -147,7 +110,6 @@ Template.players.players = function() {
 
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
-      //console.log(this, event, template);
       var newMatch = {};
       newMatch.round = this.round;
       newMatch.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
@@ -169,7 +131,6 @@ Template.players.players = function() {
   });
   Template.match.events({
     'click .remove-match' : function( event, template ) {
-      //console.log(this, event, template);
       Meteor.call( 'removeMatch', this._id, function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
@@ -263,7 +224,6 @@ if (Meteor.isServer) {
         round: 2,
         games: ['x','x','x'],
       });
-      //console.log(Matches.find({}).count(), ' matches found');
     }
   });
 }
