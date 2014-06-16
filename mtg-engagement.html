@@ -58,9 +58,7 @@
       <li class="list-group-item">
         <div class="row">
           {{#each games}}
-          <div class="col-xs-4">
-            <p class="text-center"><i class="fa fa-2x {{gameIcon 'x'}}"></i></p>
-          </div>
+            {{>game}}
           {{/each}}
         </div>
       </li>
@@ -129,6 +127,12 @@
       <div class="alert alert-warning player-name-warning" style="display:none;">Player's Names MUST not be empty.</div>
       <div class="alert alert-warning player-name-duplicate-warning" style="display:none;">Player's Names MUST not be the same.</div>
     </div>
+  </div>
+</template>
+
+<template name="game">
+  <div class="col-xs-4 alternate-game-status" data-player="x">
+    <p class="text-center"><i class="fa fa-2x {{gameIcon 'x'}}"></i></p>
   </div>
 </template>
 

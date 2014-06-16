@@ -39,10 +39,23 @@ if (Meteor.isClient) {
       });
 
       var rounds = [];
-      _.each( groupedMatches, function( value, key, list ) {
+      _.each( groupedMatches, function( matches, round, list ) {
+        _.each( matches, function( match, matchIndex, list  ) {
+          var gamesWithContext = [];
+          _.each( match.games, function( game, index, list ) {
+            gameWithContext = {};
+            gameWithContext.state = game;//x, y, undefined
+            gameWithContext.index = index;
+            gameWithContext.matchId = match._id;
+            //console.log( game, gameWithContext );
+            gamesWithContext.push( gameWithContext );
+          });
+          //console.log(match, index);
+          match.games = gamesWithContext;
+        });
         rounds.push({
-          round: key,
-          matches: value,
+          round: round,
+          matches: matches,
         });
       });
 
@@ -80,9 +93,9 @@ if (Meteor.isClient) {
     return "progress-bar-success";
   });
   UI.registerHelper( 'gameIcon', function( player ) {
-    if ( this[0] === undefined) {
+    if ( this.state === null) {
       return "fa-circle-thin";
-    } else if ( this[0] === player ) {
+    } else if ( this.state === player ) {
       return "fa-check-circle-o text-success";
     }
     return "fa-times-circle-o text-danger";
@@ -133,6 +146,40 @@ if (Meteor.isClient) {
         }
       });
     },
+  });
+  Template.game.events({
+    'click .alternate-game-status' : function( event, template ) {
+      //console.log(this, event, template);
+
+      //get the current player
+      var currentPlayer = $(template.lastNode).data().player;
+      //work out the 'other' player
+      var otherPlayer = "x";
+      if ( currentPlayer == "x" ) {
+        otherPlayer = "y";
+      }
+
+      //get the current game state (matches player is 'wining', not matches is 'loosing', undefined is not played)
+      var newGameState;
+      if ( this.state === null ) {
+        //game has not been played, set current player to winner.
+        newGameState = currentPlayer;
+      } else if ( this.state == currentPlayer ) {
+        //current player won, set current player to looser (by other player as winner).
+        newGameState = otherPlayer;
+      } else {
+        //current player lst, set the game as unplayed.
+        newGameState = null;
+      }
+
+      //console.log('this',this, 'currentPlayer', currentPlayer, 'otherPlayer', otherPlayer, 'newGameState', newGameState)
+      //save the update usinng a method
+      Meteor.call( "updateGame", this.matchId, this.index, newGameState, function() {
+        if ( error !== undefined ) {
+          console.log( 'error', error );
+        }
+      });
+    },
   })
 }
 
@@ -150,7 +197,12 @@ if (Meteor.isServer) {
     },
     removeMatch: function( _id ) {
       Matches.remove({ _id: _id });
-    }
+    },
+    updateGame: function( matchId, gameIndex, gameState ) {
+      console.log( matchId, gameIndex, gameState );
+      // to do
+      //Matches.update({ _id: matchId }, { games[gameIndex] : gameState});
+    },
   })
 
   Meteor.startup(function () {
