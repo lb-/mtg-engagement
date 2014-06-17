@@ -151,7 +151,8 @@ Template.players.players = function() {
       //console.log(this, event, template);
 
       //get the current player
-      var currentPlayer = $(template.lastNode).data().player;
+      //console.log(this, template);
+      var currentPlayer = this.player;
       //work out the 'other' player
       var otherPlayer = "x";
       if ( currentPlayer == "x" ) {
@@ -160,10 +161,10 @@ Template.players.players = function() {
 
       //get the current game state (matches player is 'wining', not matches is 'loosing', undefined is not played)
       var newGameState;
-      if ( this.state === null ) {
+      if ( this.game.state === null ) {
         //game has not been played, set current player to winner.
         newGameState = currentPlayer;
-      } else if ( this.state == currentPlayer ) {
+      } else if ( this.game.state == currentPlayer ) {
         //current player won, set current player to looser (by other player as winner).
         newGameState = otherPlayer;
       } else {
@@ -173,7 +174,7 @@ Template.players.players = function() {
 
       //console.log('this',this, 'currentPlayer', currentPlayer, 'otherPlayer', otherPlayer, 'newGameState', newGameState)
       //save the update usinng a method
-      Meteor.call( "updateGame", this.matchId, this.index, newGameState, function( error, result ) {
+      Meteor.call( "updateGame", this.game.matchId, this.game.index, newGameState, function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
         }
