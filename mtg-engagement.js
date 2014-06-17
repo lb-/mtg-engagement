@@ -1,6 +1,7 @@
 if (Meteor.isClient) {
   Template.rounds.rounds = function() {
-    Meteor.subscribe( "matches");
+    Meteor.subscribe( "matches" );
+    Meteor.subscribe( "rounds" );
 
     var getRounds = function( matches ) {
       var groupedMatches = _.groupBy( matches, function( match ) {
@@ -8,8 +9,12 @@ if (Meteor.isClient) {
       });
 
       var rounds = [];
-      _.each( groupedMatches, function( matches, round, list ) {
+      var newRounds = ( Rounds.find({}, {sort:{key:1}}).fetch() );
+      //console.log(newRounds);
+      _.each( groupedMatches, function( matches, roundId, list ) {
         _.each( matches, function( match, matchIndex, list  ) {
+
+          //old
           var gamesWithContext = [];
           _.each( match.games, function( game, index, list ) {
             gameWithContext = {};
@@ -21,12 +26,19 @@ if (Meteor.isClient) {
           match.games = gamesWithContext;
         });
         rounds.push({
-          round: round,
+          round: roundId,
           matches: matches,
         });
-      });
 
-      return rounds;
+        var thisRound = _.findWhere( newRounds, { _id: roundId } );
+        //console.log(round, thisRound);
+        if ( thisRound !== undefined) {
+          thisRound.matches = matches;
+        }
+
+      });
+      //console.log(newRounds);
+      return newRounds;
     }
 
     return getRounds( Matches.find().fetch() );
@@ -64,7 +76,8 @@ Template.players.players = function() {
 
   //Actual Helpers
   UI.registerHelper( 'totalMatches', function() {
-    return this.matches.length;
+    var currentMatches = this.matches || [];
+    return currentMatches.length;
   });
   UI.registerHelper( 'matchCompleted', function() {
     return _.every( this.games, function( game ) {
@@ -119,7 +132,8 @@ Template.players.players = function() {
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
       var newMatch = {};
-      newMatch.round = this.round;
+      console.log(this);
+      newMatch.round = this._id;
       newMatch.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
       newMatch.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
       if ( ( newMatch.playerX === "" ) || ( newMatch.playerY === "" ) ) {
@@ -187,6 +201,10 @@ if (Meteor.isServer) {
   Meteor.publish( "matches", function() {
     return Matches.find({});
   });
+  Meteor.publish( "rounds", function() {
+    return Rounds.find({});
+  });
+
   Meteor.methods({
     insertMatch: function( newMatch ) {
       newMatch.created = new Date();
@@ -204,29 +222,51 @@ if (Meteor.isServer) {
   })
 
   Meteor.startup(function () {
+    if ( Rounds.find({}).count() === 0 ) {
+      var roundOneId = Rounds.insert({
+        name: '1st',//ie. 1st Round
+        key: '1',
+      });
+      var roundTwoId = Rounds.insert({
+        name: '2nd',
+        key: '2',
+      });
+      var roundThreeId = Rounds.insert({
+        name: '3rd',
+        key: '3',
+      });
+      var roundFourId = Rounds.insert({
+        name: 'Semi-final',
+        key: '4',
+      });
+      var roundFiveId = Rounds.insert({
+        name: 'Final',
+        key: '5',
+      });
+    }
     if ( Matches.find({}).count() === 0 ) {
       Matches.insert({
         playerX: 'LB',
         playerY: 'Andrew',
-        round: 1,
+        round: roundOneId,
         games: [ 'x', 'y', null],
       });
       Matches.insert({
         playerX: 'LB',
         playerY: 'Joe',
-        round: 1,
+        round: roundOneId,
         games: ['x','y',null],
       });
       Matches.insert({
         playerX: 'Philip',
         playerY: 'Poo Face',
-        round: 2,
+        round: roundTwoId,
         games: ['y','x','x'],
       });
       Matches.insert({
         playerX: 'Samuel',
         playerY: 'Artyman',
-        round: 2,
+        round: roundTwoId,
         games: ['x','x','x'],
       });
     }
