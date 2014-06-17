@@ -44,7 +44,7 @@ Template.players.players = function() {
     var playerYGrouped = _.groupBy( matches, function( match ) {
       return match.playerY;
     });
-    console.log(playerXGrouped)
+    //console.log(playerXGrouped)
 
     players = [];
     _.each( playerYGrouped, function( matches, playerName, list) {
@@ -66,7 +66,6 @@ Template.players.players = function() {
   UI.registerHelper( 'totalMatches', function() {
     return this.matches.length;
   });
-
   UI.registerHelper( 'matchCompleted', function() {
     return _.every( this.games, function( game ) {
       return game.state !== null;
@@ -87,10 +86,11 @@ Template.players.players = function() {
     }
     return "progress-bar-success";
   });
-  UI.registerHelper( 'gameIcon', function( player ) {
-    if ( this.state === null) {
+  UI.registerHelper( 'gameIcon', function() {
+    // console.log(this)
+    if ( this.game.state === null) {
       return "fa-circle-thin";
-    } else if ( this.state === player ) {
+    } else if ( this.game.state === this.player ) {
       return "fa-check-circle-o text-success";
     }
     return "fa-times-circle-o text-danger";
