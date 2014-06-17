@@ -1,3 +1,5 @@
+var version = '0.2';
+
 if (Meteor.isClient) {
   Template.rounds.rounds = function() {
     Meteor.subscribe( "matches" );
@@ -126,6 +128,9 @@ Template.players.players = function() {
   }
 
   //Helpers
+  UI.registerHelper( 'version', function() {
+    return version;
+  });
   UI.registerHelper( 'roundRankings', function() {
 
     var playersByTotalWins = _.countBy( this.matches, function( match ) {
@@ -142,6 +147,10 @@ Template.players.players = function() {
     rankings = _.sortBy( rankings, function( rank ) { return 0 - rank.total });
     _.each( rankings, function( rank, i ) {
       rank.rank = i + 1;
+      //This needs to be improved
+      //currently; 1st Joe with 3 win, 2nd LB with 3 win, 3rd Jerry with 2 wins
+      //should be: 1st joe (3), 1st LB (3), 2nd Jerry (2)
+
     });
     return rankings;
   });
