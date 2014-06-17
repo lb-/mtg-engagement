@@ -50,39 +50,77 @@ Template.players.players = function() {
   Meteor.subscribe( "matches");
 
   var getPlayers = function( matches ) {
-    var playerXGrouped = _.groupBy( matches, function( match ) {
-      return match.playerX;
+    var playersByName = {};
+    //var playersList = [];
+    var processMatches = function( matches, players ) {
+      var players = players || ['x','y'];
+      _.each ( players, function( playerGene, playerIndex ) {
+        var playerRef = 'player' + playerGene.toUpperCase();
+        var matchesGroupedByPlayers = _.groupBy( matches, function( match ) {
+          return match[playerRef].toUpperCase();
+        });
+        _.each( matchesGroupedByPlayers, function( matches, playerName, list) {
+          //console.log(this);
+          //playersList.push({name:playerName, matches: matches});
+          if ( _.has(playersByName, playerName ) === true ) {
+            _.union( playersByName[ playerName ].matches, matches);
+          } else {
+            playersByName[ playerName ] = {
+              matches: matches,
+            };
+          }
+        });
+      })
+    };
+    processMatches(matches);
+    playersList = [];
+    _.each( playersByName, function( playerDetail, playerName ) {
+      playersList.push( _.extend({}, playerDetail,{ name: playerName }) );
     });
-    var playerYGrouped = _.groupBy( matches, function( match ) {
-      return match.playerY;
-    });
-    //console.log(playerXGrouped)
-
-    players = [];
-    _.each( playerYGrouped, function( matches, playerName, list) {
-      players.push({name:playerName, matches: matches});
-    });
-    _.each( playerXGrouped, function( matches, playerName, list) {
-      players.push({name:playerName, matches: matches});
-    });
-
-    return players;
-    // to do
+    return playersList;
   }
 
   return getPlayers( Matches.find().fetch() );
 
 }
 
-  //Actual Helpers
+  //functions used in helpers & other areas
+  var isMatchCompleted = function( games ) {
+    return _.every( games, function( game ) {
+      if ( _.isObject(game) ) {
+        return game.state !== null;
+      } else {
+        return game !== null;
+      }
+    });
+  }
+  var isPlayerWinner = function( games, player ) {
+    if ( isMatchCompleted( games ) ) {
+      var totals = _.countBy( games, function( game ) {
+        var state = game;
+        if ( _.isObject( game ) ) {
+          state = game.state;
+        }
+        if ( state === player ) {
+          return 'won';
+        }
+        return 'lost'
+        });
+
+      if ( ( totals.won == 3 ) || ( totals.won > totals.lost ) ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //Helpers
   UI.registerHelper( 'totalMatches', function() {
     var currentMatches = this.matches || [];
     return currentMatches.length;
   });
   UI.registerHelper( 'matchCompleted', function() {
-    return _.every( this.games, function( game ) {
-      return game.state !== null;
-    });
+    return isMatchCompleted( this.games );
   });
   UI.registerHelper( 'matchCompletionPercent', function() {
     var gameTotals = _.countBy( this.games, function(game) {
@@ -109,26 +147,47 @@ Template.players.players = function() {
     return "fa-times-circle-o text-danger";
   });
   UI.registerHelper( 'playerIsWinner', function( player ) {
-    if ( _.some( this.games, function( i ) { return i.state === null } ) ) {
-      return false;
-    }
-    var totals = _.countBy( this.games, function( i ) {
-      if ( i.state === player ) {
-        return 'won';
-      }
-      return 'lost'
-      });
-
-    if ( ( totals.won == 3 ) || ( totals.won > totals.lost ) ) {
-      return true;
-    }
-    return false;
+    return isPlayerWinner( this.games, player );
   });
   UI.registerHelper( 'getOrdinalNumber', function( num ) {
    var s = ["th","st","nd","rd"]
    var v = num % 100;
    return num +(s[(v-20)%10]||s[v]||s[0]);
   });
+  UI.registerHelper( 'playerTotalMatches', function( status ) {
+    var playerName = this.name;
+    //console.log(this, status);
+    if ( status == undefined ) {
+      return this.matches.length;
+    } else if ( ( status == 'completed' ) || ( status == 'not completed') ) {
+      var totals = _.countBy( this.matches, function( match ) {
+        return isMatchCompleted( match.games );
+      });
+      //console.log(totals);
+      if ( status == 'completed' ) {
+        return totals[true] || 0;
+      }
+      return totals[false] || 0;
+    } else if ( ( status == 'won' ) || ( status == 'lost') ) {
+      var totals = _.countBy( this.matches, function( match ) {
+        //console.log(match.playerX.toUpperCase(), playerName);
+        var matchPlayerRef = null;
+        if ( match.playerX.toUpperCase() == playerName ) {
+          matchPlayerRef = 'x';
+        } else if ( match.playerY.toUpperCase() == playerName ) {
+          matchPlayerRef = 'y';
+        }
+        return isPlayerWinner( match.games, matchPlayerRef );
+      });
+      if ( status == 'won' ) {
+        return totals[true] || 0;
+      }
+      return totals[false] || 0;
+    } else {
+      return 'unknown total query';
+    }
+  });
+
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
       var newMatch = {};
