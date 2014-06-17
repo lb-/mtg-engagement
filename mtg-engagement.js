@@ -94,14 +94,25 @@ Template.players.players = function() {
       }
     });
   }
-  var isPlayerWinner = function( games, player ) {
+  var getWinningPlayer = function( match ) {
+    if ( isMatchCompleted( match.games ) ) {
+      if ( isPlayerWinner( match.games, 'x' ) ) {
+        return match.playerX.toUpperCase();
+      } else if ( isPlayerWinner( match.games, 'y' ) ) {
+        return match.playerY.toUpperCase();
+      }
+      return 'error';
+    }
+    return null;
+  }
+  var isPlayerWinner = function( games, playerRef ) {
     if ( isMatchCompleted( games ) ) {
       var totals = _.countBy( games, function( game ) {
         var state = game;
         if ( _.isObject( game ) ) {
           state = game.state;
         }
-        if ( state === player ) {
+        if ( state === playerRef ) {
           return 'won';
         }
         return 'lost'
@@ -115,8 +126,46 @@ Template.players.players = function() {
   }
 
   //Helpers
-  UI.registerHelper( 'totalMatches', function() {
+  UI.registerHelper( 'roundRankings', function() {
+
+    var playersByTotalWins = _.countBy( this.matches, function( match ) {
+      var winningPlayer = getWinningPlayer( match, 'name' );
+      return winningPlayer;
+    });
+    var rankings = [];
+    _.each( playersByTotalWins, function( total, name ) {
+      if ( name != "null" ) {
+        //console.log( name );
+        rankings.push({ total: total, name: name });
+      }
+    });
+    rankings = _.sortBy( rankings, function( rank ) { return 0 - rank.total });
+    _.each( rankings, function( rank, i ) {
+      rank.rank = i + 1;
+    });
+    return rankings;
+  });
+  UI.registerHelper( 'rankingLabelClass', function( rank ) {
+    if ( rank === 1 ) {
+      return "label-success";
+    } else if ( rank === 2 ) {
+      return "label-info";
+    } else if ( rank === 3 ) {
+      return "label-primary";
+    }
+    return "label-default";
+  });
+  UI.registerHelper( 'totalMatches', function( query ) {
     var currentMatches = this.matches || [];
+    if ( query  == 'completed' ) {
+      totalCompleted = 0;
+      _.each( currentMatches, function( match ) {
+        if ( isMatchCompleted( match.games ) ) {
+          totalCompleted += 1;
+        }
+      });
+      return totalCompleted;
+    }
     return currentMatches.length;
   });
   UI.registerHelper( 'matchCompleted', function() {

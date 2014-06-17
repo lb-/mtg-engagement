@@ -19,7 +19,18 @@
   {{#each rounds}}
     <div>
       <div class="page-header">
-        <h1>{{name}} Round <small>{{totalMatches}} matches</small></h1>
+        <h1>{{name}} Round <small> Completed <strong>{{totalMatches 'completed'}} of {{totalMatches}}</strong> Matches.</small></h1>
+        <ul class="list-inline">
+          {{#each roundRankings}}
+          <li style="padding-left: 20px;">
+            <span class="label {{rankingLabelClass rank}}">
+              {{getOrdinalNumber rank}}
+            </span>
+            &nbsp; {{name}}
+            <span class="badge">{{total}}</span>
+          </li>
+          {{/each}}
+        </ul>
       </div>
       <div class="row">
         {{#each matches}}
