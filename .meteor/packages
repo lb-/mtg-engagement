@@ -7,3 +7,7 @@ standard-app-packages
 bootstrap-united
 moment
 font-awesome
+accounts-password
+accounts-entry
+iron-router
+underscore-string-latest

@@ -2,6 +2,8 @@
   "packages": {
     "bootstrap-united": {},
     "moment": {},
-    "font-awesome": {}
+    "font-awesome": {},
+    "accounts-entry": {},
+    "underscore-string-latest": {}
   }
 }

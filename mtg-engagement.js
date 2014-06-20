@@ -1,90 +1,6 @@
-var version = '0.2';
+var version = '0.3';
 
 if (Meteor.isClient) {
-  Template.rounds.rounds = function() {
-    Meteor.subscribe( "matches" );
-    Meteor.subscribe( "rounds" );
-
-    var getRounds = function( matches ) {
-      var groupedMatches = _.groupBy( matches, function( match ) {
-        return match.round;
-      });
-
-      var rounds = [];
-      var newRounds = ( Rounds.find({}, {sort:{key:1}}).fetch() );
-      //console.log(newRounds);
-      _.each( groupedMatches, function( matches, roundId, list ) {
-        _.each( matches, function( match, matchIndex, list  ) {
-
-          //old
-          var gamesWithContext = [];
-          _.each( match.games, function( game, index, list ) {
-            gameWithContext = {};
-            gameWithContext.state = game;//x, y, undefined
-            gameWithContext.index = index;
-            gameWithContext.matchId = match._id;
-            gamesWithContext.push( gameWithContext );
-          });
-          match.games = gamesWithContext;
-        });
-        rounds.push({
-          round: roundId,
-          matches: matches,
-        });
-
-        var thisRound = _.findWhere( newRounds, { _id: roundId } );
-        //console.log(round, thisRound);
-        if ( thisRound !== undefined) {
-          thisRound.matches = matches;
-        }
-
-      });
-      //console.log(newRounds);
-      return newRounds;
-    }
-
-    return getRounds( Matches.find().fetch() );
-
-  }
-
-
-Template.players.players = function() {
-  Meteor.subscribe( "matches");
-
-  var getPlayers = function( matches ) {
-    var playersByName = {};
-    //var playersList = [];
-    var processMatches = function( matches, players ) {
-      var players = players || ['x','y'];
-      _.each ( players, function( playerGene, playerIndex ) {
-        var playerRef = 'player' + playerGene.toUpperCase();
-        var matchesGroupedByPlayers = _.groupBy( matches, function( match ) {
-          return match[playerRef].toUpperCase();
-        });
-        _.each( matchesGroupedByPlayers, function( matches, playerName, list) {
-          //console.log(this);
-          //playersList.push({name:playerName, matches: matches});
-          if ( _.has(playersByName, playerName ) === true ) {
-            _.union( playersByName[ playerName ].matches, matches);
-          } else {
-            playersByName[ playerName ] = {
-              matches: matches,
-            };
-          }
-        });
-      })
-    };
-    processMatches(matches);
-    playersList = [];
-    _.each( playersByName, function( playerDetail, playerName ) {
-      playersList.push( _.extend({}, playerDetail,{ name: playerName }) );
-    });
-    return playersList;
-  }
-
-  return getPlayers( Matches.find().fetch() );
-
-}
 
   //functions used in helpers & other areas
   var isMatchCompleted = function( games ) {
@@ -95,6 +11,13 @@ Template.players.players = function() {
         return game !== null;
       }
     });
+  }
+  var getPoints = function( match ) {
+    points = {};
+    _.countBy( match.games, function( game ) {
+
+    });
+    return points;
   }
   var getWinningPlayer = function( match ) {
     if ( isMatchCompleted( match.games ) ) {
@@ -131,6 +54,15 @@ Template.players.players = function() {
   UI.registerHelper( 'version', function() {
     return version;
   });
+  UI.registerHelper( 'currentRouteNameEquals', function( x ) {
+    //var currentRouteName = Router.current().route.name;
+    var current = Router.current();
+    //console.log(current && current.path, x, _.includes( current && current.path, x ));
+    if ( _.str.include( current && current.path, x ) ) {
+      return true
+    }
+    return false
+  })
   UI.registerHelper( 'roundRankings', function() {
 
     var playersByTotalWins = _.countBy( this.matches, function( match ) {
@@ -321,6 +253,9 @@ if (Meteor.isServer) {
   Meteor.publish( "rounds", function() {
     return Rounds.find({});
   });
+  Meteor.publish( "tournaments", function() {
+    return Tournaments.find({});
+  });
 
   Meteor.methods({
     insertMatch: function( newMatch ) {
@@ -339,6 +274,36 @@ if (Meteor.isServer) {
   })
 
   Meteor.startup(function () {
+
+    var lbUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "mail@lb.ee" } } });
+    var samUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "samuel.davidj@gmail.com" } } });
+    var userIds = [];
+
+    if ( lbUser !== undefined ) {
+      userIds.push(lbUser._id);
+    }
+    if ( samUser !== undefined ) {
+      userIds.push(samUser._id);
+    }
+    //console.log(userIds);
+    samTournament = {
+      name: "Sam J's Epic Tournament",
+      date: "Saturday the 21st of June, 2014",
+      description: "Battling it out!",
+      owners: userIds,
+      }
+    if ( Tournaments.find({}).count() === 0 ) {
+      var newTournament = Tournaments.insert(samTournament);
+    } else {
+      var newTournament = Tournaments.findOne( {} )._id;
+      Tournaments.update({_id:newTournament}, {$set: samTournament});
+    }
+    allMatches = Matches.find( { tournament: null } ).fetch();
+    _.each( allMatches, function(match) {
+      //match = _.extend(match, {tournament:newTournament});
+      Matches.update({_id:match._id}, {$set: {tournament:newTournament}});
+    });
+
     if ( Rounds.find({}).count() === 0 ) {
       var roundOneId = Rounds.insert({
         name: '1st',//ie. 1st Round
