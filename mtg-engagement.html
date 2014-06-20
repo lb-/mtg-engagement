@@ -206,9 +206,26 @@
 
 <template name="intro">
   <div class="jumbotron" id="intro">
-    <h1>{{tournament.name}}</h1>
-    <p>{{tournament.date}}</p>
-    <p>{{tournament.description}}</p>
+    {{#if isTournamentOwner}}
+      <form role="form">
+        <div class="form-group">
+          <label for="tournamentName">Tournament Name</label>
+          <input type="text" class="form-control update-tournament" id="tournamentName" placeholder="Epic Mania Tournament" value="{{tournament.name}}" data-update="name">
+        </div>
+        <div class="form-group">
+          <label for="tournamentDate">Tournament Date (description)</label>
+          <input type="text" class="form-control update-tournament" id="tournamentDate" placeholder="Sunday the 1st of December, 2014" value="{{tournament.date}}" data-update="date">
+        </div>
+        <div class="form-group">
+          <label for="tournamentDescription">Tournament Description</label>
+          <input type="text" class="form-control update-tournament" id="tournamentDescription" placeholder="Wear pants!" value="{{tournament.description}}" data-update="description">
+        </div>
+      </form>
+    {{else}}
+      <h1>{{tournament.name}}</h1>
+      <p>{{tournament.date}}</p>
+      <p>{{tournament.description}}</p>
+    {{/if}}
   </div>
 </template>
 

@@ -1,10 +1,6 @@
 Router.configure({
   layoutTemplate: 'layout',
   loadingTemplate: 'loading',
-  waitOn: function () {
-    // wait for the subscription to be ready; see below
-    return Meteor.subscribe('tournaments');
-  },
 });
 
 Router.map(function() {
@@ -19,16 +15,16 @@ Router.map(function() {
   this.route('tournament', {
     path: '/tournament/:_id',
     waitOn: function () {
-      // wait for the subscription to be ready; see below
       return [
           Meteor.subscribe( 'rounds' ),
           Meteor.subscribe( 'matches' ),
+          Meteor.subscribe( 'tournaments' ),
         ];
     },
     data: function() {
       var rounds = Rounds.find( {}, { sort: { key: 1 } } ).fetch();
       var matches = Matches.find( { tournament: this.params._id } ).fetch();
-      var tournament = Tournaments.findOne( { _id: this.params._id } );
+      var tournament = Tournaments.findOne( { _id: this.params._id } ) || {};
       return {
         rounds: getRounds( rounds, matches ),
         players: getPlayers( matches ),

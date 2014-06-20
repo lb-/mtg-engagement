@@ -1,4 +1,4 @@
-var version = '0.3';
+version = '0.3';
 
 if (Meteor.isClient) {
 
@@ -53,6 +53,13 @@ if (Meteor.isClient) {
   //Helpers
   UI.registerHelper( 'version', function() {
     return version;
+  });
+  UI.registerHelper( 'isTournamentOwner', function() {
+    if ( _.contains( this.tournament.owners, Meteor.userId() ) ) {
+      return true;
+    }
+    //console.log('isTournamentOwner',this);
+    return false;
   });
   UI.registerHelper( 'currentRouteNameEquals', function( x ) {
     //var currentRouteName = Router.current().route.name;
@@ -178,6 +185,23 @@ if (Meteor.isClient) {
     }
   });
 
+  Template.intro.events({
+    'blur .update-tournament' : function( event, template ) {
+      //console.log(this, event, template);
+      var $target = $(event.target);
+      //console.log($target);
+      var tournamentUpdate = {};
+      tournamentUpdate[ $target.data( 'update' ) ] = $target.val();
+      console.log(this.tournament._id, tournamentUpdate, 'user', Meteor.userId() );
+      //update the current template item
+      Meteor.call('updateTournament', this.tournament._id, {$set: tournamentUpdate}, Meteor.userId(), function( error, result ) {
+        if ( error !== undefined ) {
+          console.log( 'error', error );
+        }
+      })
+    }
+  })
+
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
       var newMatch = {};
@@ -271,39 +295,49 @@ if (Meteor.isServer) {
       update['games.' + gameIndex] = gameState;
       var x = Matches.update({ _id: matchId }, { $set : update });
     },
+    updateTournament: function( tournamentId, tournamentUpdate, userId ) {
+      var tournament = Tournaments.findOne({_id:tournamentId});
+      //console.log(tournament.owners, userId);
+      if ( _.contains( tournament.owners, userId ) ) {
+        Tournaments.update({_id: tournamentId}, tournamentUpdate );
+      } else {
+        throw new Meteor.Error(401, 'Only owners can update tournaments' );
+      }
+    }
   })
 
   Meteor.startup(function () {
 
-    var lbUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "mail@lb.ee" } } });
-    var samUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "samuel.davidj@gmail.com" } } });
-    var userIds = [];
+    // var lbUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "mail@lb.ee" } } });
+    // var samUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "samuel.davidj@gmail.com" } } });
+    // var userIds = [];
+    //
+    // if ( lbUser !== undefined ) {
+    //   userIds.push(lbUser._id);
+    // }
+    // if ( samUser !== undefined ) {
+    //   userIds.push(samUser._id);
+    // }
+    // //console.log(userIds);
+    // samTournament = {
+    //   name: "Sam J's Epic Tournament",
+    //   date: "Saturday the 21st of June, 2014",
+    //   description: "Battling it out!",
+    //   owners: userIds,
+    //   }
+    // if ( Tournaments.find({}).count() === 0 ) {
+    //   var newTournament = Tournaments.insert(samTournament);
+    // } else {
+    //   var newTournament = Tournaments.findOne( {} )._id;
+    //   Tournaments.update({_id:newTournament}, {$set: samTournament});
+    // }
+    // allMatches = Matches.find( { tournament: null } ).fetch();
+    // _.each( allMatches, function(match) {
+    //   //match = _.extend(match, {tournament:newTournament});
+    //   Matches.update({_id:match._id}, {$set: {tournament:newTournament}});
+    // });
 
-    if ( lbUser !== undefined ) {
-      userIds.push(lbUser._id);
-    }
-    if ( samUser !== undefined ) {
-      userIds.push(samUser._id);
-    }
-    //console.log(userIds);
-    samTournament = {
-      name: "Sam J's Epic Tournament",
-      date: "Saturday the 21st of June, 2014",
-      description: "Battling it out!",
-      owners: userIds,
-      }
-    if ( Tournaments.find({}).count() === 0 ) {
-      var newTournament = Tournaments.insert(samTournament);
-    } else {
-      var newTournament = Tournaments.findOne( {} )._id;
-      Tournaments.update({_id:newTournament}, {$set: samTournament});
-    }
-    allMatches = Matches.find( { tournament: null } ).fetch();
-    _.each( allMatches, function(match) {
-      //match = _.extend(match, {tournament:newTournament});
-      Matches.update({_id:match._id}, {$set: {tournament:newTournament}});
-    });
-
+    //currently all tournaments will use the same rounds
     if ( Rounds.find({}).count() === 0 ) {
       var roundOneId = Rounds.insert({
         name: '1st',//ie. 1st Round
@@ -326,31 +360,31 @@ if (Meteor.isServer) {
         key: '5',
       });
     }
-    if ( Matches.find({}).count() === 0 ) {
-      Matches.insert({
-        playerX: 'LB',
-        playerY: 'Andrew',
-        round: roundOneId,
-        games: [ 'x', 'y', null],
-      });
-      Matches.insert({
-        playerX: 'LB',
-        playerY: 'Joe',
-        round: roundOneId,
-        games: ['x','y',null],
-      });
-      Matches.insert({
-        playerX: 'Philip',
-        playerY: 'Poo Face',
-        round: roundTwoId,
-        games: ['y','x','x'],
-      });
-      Matches.insert({
-        playerX: 'Samuel',
-        playerY: 'Artyman',
-        round: roundTwoId,
-        games: ['x','x','x'],
-      });
-    }
+    // if ( Matches.find({}).count() === 0 ) {
+    //   Matches.insert({
+    //     playerX: 'LB',
+    //     playerY: 'Andrew',
+    //     round: roundOneId,
+    //     games: [ 'x', 'y', null],
+    //   });
+    //   Matches.insert({
+    //     playerX: 'LB',
+    //     playerY: 'Joe',
+    //     round: roundOneId,
+    //     games: ['x','y',null],
+    //   });
+    //   Matches.insert({
+    //     playerX: 'Philip',
+    //     playerY: 'Poo Face',
+    //     round: roundTwoId,
+    //     games: ['y','x','x'],
+    //   });
+    //   Matches.insert({
+    //     playerX: 'Samuel',
+    //     playerY: 'Artyman',
+    //     round: roundTwoId,
+    //     games: ['x','x','x'],
+    //   });
+    // }
   });
 }
