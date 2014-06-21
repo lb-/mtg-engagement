@@ -237,11 +237,9 @@ if (Meteor.isClient) {
 
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
-      //console.log('test');
       var newMatch = {};
       newMatch.tournament = this.tournament._id;
-      newMatch.round = this.matches[0].round;
-      //console.log(this, template);
+      newMatch.round = this.round._id;
       newMatch.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
       newMatch.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
       if ( ( newMatch.playerX === "" ) || ( newMatch.playerY === "" ) ) {
@@ -249,10 +247,9 @@ if (Meteor.isClient) {
       } else if ( newMatch.playerX.toUpperCase() === newMatch.playerY.toUpperCase() ) {
         $(template.firstNode).find(".player-name-duplicate-warning").show();
       } else {
-        //console.log('about to add');
         $(template.firstNode).find(".player-name-warning").hide();
         $(template.firstNode).find(".player-name-duplicate-warning").hide();
-
+        $(template.firstNode).find('input').val('')
         Meteor.call( 'insertMatch', newMatch, function( error, result ) {
           if ( error !== undefined ) {
             console.log( 'error', error );
