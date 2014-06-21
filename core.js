@@ -11,17 +11,9 @@ isTournamentOwner = function( tournamentId, userId ) {
 }
 
 getRounds = function( rounds, matches ) {
-  var groupedMatches = _.groupBy( matches, function( match ) {
-    return match.round;
-  });
-
-  var rounds = [];
-  var newRounds = ( rounds );
-  //console.log(newRounds);
-  _.each( groupedMatches, function( matches, roundId, list ) {
-    _.each( matches, function( match, matchIndex, list  ) {
-
-      //old
+  _.each( rounds, function( round, index) {
+    round.matches = _.where( matches, { round: round._id} );
+    _.each( round.matches, function( match, matchIndex, list  ) {
       var gamesWithContext = [];
       _.each( match.games, function( game, index, list ) {
         gameWithContext = {};
@@ -32,20 +24,8 @@ getRounds = function( rounds, matches ) {
       });
       match.games = gamesWithContext;
     });
-    rounds.push({
-      round: roundId,
-      matches: matches,
-    });
-
-    var thisRound = _.findWhere( newRounds, { _id: roundId } );
-    //console.log(round, thisRound);
-    if ( thisRound !== undefined) {
-      thisRound.matches = matches;
-    }
-
   });
-  //console.log(newRounds);
-  return newRounds;
+  return rounds;
 }
 
 getPlayers = function( matches ) {
