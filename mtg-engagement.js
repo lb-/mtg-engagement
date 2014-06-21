@@ -12,13 +12,6 @@ if (Meteor.isClient) {
       }
     });
   }
-  var getPoints = function( match ) {
-    points = {};
-    _.countBy( match.games, function( game ) {
-
-    });
-    return points;
-  }
   var getWinningPlayer = function( match ) {
     if ( isMatchCompleted( match.games ) ) {
       if ( isPlayerWinner( match.games, 'x' ) ) {
@@ -29,6 +22,25 @@ if (Meteor.isClient) {
       return 'error';
     }
     return null;
+  }
+  var getPointsInMatch = function( match ) {
+    var points = {};
+    points[ match.playerX.toUpperCase() ] = 0;
+    points[ match.playerY.toUpperCase() ] = 0;
+    // work out winning player, 1 point for the match win
+    var winningPlayer = getWinningPlayer( match );
+    if ( winningPlayer !== null ) {
+      points[ winningPlayer.toUpperCase() ] += 1;
+    }
+    // add one point for each individual game win
+    _.each( match.games, function( game ) {
+      if ( game.state === 'x' ) {
+        points[ match.playerX.toUpperCase() ] += 1;
+      } else if ( game.state === 'y' ) {
+        points[ match.playerY.toUpperCase() ] += 1;
+      }
+    });
+    return points;
   }
   var isPlayerWinner = function( games, playerRef ) {
     if ( isMatchCompleted( games ) ) {
@@ -48,6 +60,21 @@ if (Meteor.isClient) {
       }
     }
     return false;
+  }
+  var getPointsInRound = function( matches ) {
+    var totalPointsByPlayerName = {};
+    //go through each match, get the points & add to the main scoring
+    _.each( matches, function( match ) {
+      var pointsInMatch = getPointsInMatch( match );
+      _.each( pointsInMatch, function( points, playerName ) {
+        if ( _.has( totalPointsByPlayerName, playerName ) ) {
+          totalPointsByPlayerName[playerName] += points;
+        } else {
+          totalPointsByPlayerName[playerName] = points;
+        }
+      });
+    });
+    return totalPointsByPlayerName;
   }
 
   //Helpers
@@ -70,26 +97,33 @@ if (Meteor.isClient) {
     return false
   })
   UI.registerHelper( 'roundRankings', function() {
-
-    var playersByTotalWins = _.countBy( this.matches, function( match ) {
-      var winningPlayer = getWinningPlayer( match, 'name' );
-      return winningPlayer;
-    });
+    var totalPointsByPlayerName = getPointsInRound( this.matches );
     var rankings = [];
-    _.each( playersByTotalWins, function( total, name ) {
-      if ( name != "null" ) {
-        //console.log( name );
-        rankings.push({ total: total, name: name });
+    var playersByTotals = {};
+    var totals = [];
+    _.each( totalPointsByPlayerName, function( total, name ) {
+      //rankings.push({ total: total, name: name });
+      totals.push( parseInt(total) );
+      if ( _.has( playersByTotals, total ) ) {
+        playersByTotals[total].push( name );
+      } else {
+        playersByTotals[total] = [ name ];
       }
     });
-    rankings = _.sortBy( rankings, function( rank ) { return 0 - rank.total });
-    _.each( rankings, function( rank, i ) {
-      rank.rank = i + 1;
-      //This needs to be improved
-      //currently; 1st Joe with 3 win, 2nd LB with 3 win, 3rd Jerry with 2 wins
-      //should be: 1st joe (3), 1st LB (3), 2nd Jerry (2)
+    //console.log(playersByTotals);
 
+    var sortedUniqeTotals = _.uniq( _.sortBy( totals, function( num ) {return num} ), true).reverse();
+    //var x = _.sortBy(totals, function( num ) {return num});
+    //console.log(totals, sortedUniqeTotals);
+    _.each( sortedUniqeTotals , function( totalNum, index ) {
+      //console.log(index);
+      _.each( playersByTotals[ totalNum ], function( name ) {
+        //console.log(index);
+        rankings.push({ total: totalNum, name: name , rank: index + 1 });
+      });
     });
+    //rankings = _.sortBy( rankings, function( rank ) { return 0 - rank });
+    //console.log(rankings);
     return rankings;
   });
   UI.registerHelper( 'rankingLabelClass', function( rank ) {
