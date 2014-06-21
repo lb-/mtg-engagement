@@ -58,13 +58,15 @@
       </div>
       <div class="row">
         {{#each matches}}
-        <div class="col-lg-4">
+        <div class="col-lg-4 col-md-4 col-sm-6">
           {{>match}}
         </div>
         {{/each}}
-        <div class="col-lg-4">
-          {{>newMatch}}
+        {{#if isTournamentOwner ../tournament._id}}
+        <div class="col-lg-4 col-md-4 col-sm-6">
+          {{>newMatch tournament=../tournament matches=matches round=round}}
         </div>
+        {{/if}}
       </div>
     </div>
   {{/each}}
@@ -96,28 +98,30 @@
       <li class="list-group-item">
         <div class="row">
           {{#each games}}
-            {{>game player='x' game=.}}
+            {{>game player='x' game=. tournament=../tournament}}
           {{/each}}
         </div>
       </li>
       <li class="list-group-item">
         <div class="row">
-          <div class="col-xs-9">
+          <div class="{{#if isTournamentOwner tournament}}col-xs-9{{else}}col-xs-12{{/if}}">
             <div class="progress">
               <div class="progress-bar {{matchCompletedProgressBarClass}}" role="progressbar" aria-valuenow="{{matchCompletionPercent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{matchCompletionPercent}}%">
               </div>
             </div>
           </div>
+          {{#if isTournamentOwner tournament}}
           <div class="col-xs-3">
             <button class="btn btn-block btn-xs btn-danger remove-match">Remove</button>
           </div>
+          {{/if}}
         </div>
       </li>
       <li class="list-group-item">
         <div class="row">
           <div class="row">
             {{#each games}}
-              {{>game player='y' game=.}}
+              {{>game player='y' game=. tournament=../tournament}}
             {{/each}}
           </div>
         </div>
@@ -206,7 +210,7 @@
 
 <template name="intro">
   <div class="jumbotron" id="intro">
-    {{#if isTournamentOwner}}
+    {{#if isTournamentOwner tournament._id}}
       <form role="form">
         <div class="form-group">
           <label for="tournamentName">Tournament Name</label>

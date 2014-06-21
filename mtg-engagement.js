@@ -54,11 +54,10 @@ if (Meteor.isClient) {
   UI.registerHelper( 'version', function() {
     return version;
   });
-  UI.registerHelper( 'isTournamentOwner', function() {
-    if ( _.contains( this.tournament.owners, Meteor.userId() ) ) {
+  UI.registerHelper( 'isTournamentOwner', function( tournamentId ) {
+    if ( isTournamentOwner( tournamentId, Meteor.userId() ) ) {
       return true;
     }
-    //console.log('isTournamentOwner',this);
     return false;
   });
   UI.registerHelper( 'currentRouteNameEquals', function( x ) {
@@ -192,7 +191,7 @@ if (Meteor.isClient) {
       //console.log($target);
       var tournamentUpdate = {};
       tournamentUpdate[ $target.data( 'update' ) ] = $target.val();
-      console.log(this.tournament._id, tournamentUpdate, 'user', Meteor.userId() );
+      //console.log(this.tournament._id, tournamentUpdate, 'user', Meteor.userId() );
       //update the current template item
       Meteor.call('updateTournament', this.tournament._id, {$set: tournamentUpdate}, Meteor.userId(), function( error, result ) {
         if ( error !== undefined ) {
@@ -205,8 +204,8 @@ if (Meteor.isClient) {
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
       var newMatch = {};
-      console.log(this);
-      newMatch.round = this._id;
+      newMatch.tournament = this.tournament._id;
+      newMatch.round = this.round;
       newMatch.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
       newMatch.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
       if ( ( newMatch.playerX === "" ) || ( newMatch.playerY === "" ) ) {
@@ -226,7 +225,8 @@ if (Meteor.isClient) {
   });
   Template.match.events({
     'click .remove-match' : function( event, template ) {
-      Meteor.call( 'removeMatch', this._id, function( error, result ) {
+      //console.log(this)
+      Meteor.call( 'removeMatch', this._id, this.tournament, Meteor.userId(), function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
         }
@@ -258,10 +258,11 @@ if (Meteor.isClient) {
         //current player lst, set the game as unplayed.
         newGameState = null;
       }
-
+      //console.log(this);
+      var tournamentId = this.tournament;
       //console.log('this',this, 'currentPlayer', currentPlayer, 'otherPlayer', otherPlayer, 'newGameState', newGameState)
       //save the update usinng a method
-      Meteor.call( "updateGame", this.game.matchId, this.game.index, newGameState, function( error, result ) {
+      Meteor.call( "updateGame", this.game.matchId, this.game.index, newGameState, tournamentId, Meteor.userId(), function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
         }
@@ -281,24 +282,31 @@ if (Meteor.isServer) {
     return Tournaments.find({});
   });
 
+
   Meteor.methods({
     insertMatch: function( newMatch ) {
       newMatch.created = new Date();
       newMatch.games = [null, null, null];
       Matches.insert( newMatch );
     },
-    removeMatch: function( _id ) {
-      Matches.remove({ _id: _id });
+    removeMatch: function( _id, tournamentId, userId ) {
+      if ( isTournamentOwner( tournamentId, userId ) ) {
+        Matches.remove({ _id: _id });
+      } else {
+        throw new Meteor.Error(401, 'Only owners can remove matches in a tournament' );
+      }
     },
-    updateGame: function( matchId, gameIndex, gameState ) {
-      var update = {};
-      update['games.' + gameIndex] = gameState;
-      var x = Matches.update({ _id: matchId }, { $set : update });
+    updateGame: function( matchId, gameIndex, gameState, tournamentId, userId ) {
+      if ( isTournamentOwner( tournamentId, userId ) ) {
+        var update = {};
+        update['games.' + gameIndex] = gameState;
+        var x = Matches.update({ _id: matchId }, { $set : update });
+      } else {
+        throw new Meteor.Error(401, 'Only owners can update games' );
+      }
     },
     updateTournament: function( tournamentId, tournamentUpdate, userId ) {
-      var tournament = Tournaments.findOne({_id:tournamentId});
-      //console.log(tournament.owners, userId);
-      if ( _.contains( tournament.owners, userId ) ) {
+      if ( isTournamentOwner( tournamentId, userId ) ) {
         Tournaments.update({_id: tournamentId}, tournamentUpdate );
       } else {
         throw new Meteor.Error(401, 'Only owners can update tournaments' );

@@ -1,3 +1,15 @@
+isTournamentOwner = function( tournamentId, userId ) {
+  //console.log(tournamentId, userId);
+  var tournament = Tournaments.findOne({_id:tournamentId});
+  //console.log(tournament);
+  if ( tournament !== undefined ) {
+    if ( _.contains( tournament.owners, userId ) ) {
+      return true
+    }
+  }
+  return false;
+}
+
 getRounds = function( rounds, matches ) {
   var groupedMatches = _.groupBy( matches, function( match ) {
     return match.round;
