@@ -6,6 +6,11 @@ Router.configure({
 Router.map(function() {
   this.route('home', {
     path: '/',
+    waitOn: function () {
+      return [
+          Meteor.subscribe( 'tournaments' ),
+        ];
+    },
     data: function() {
       return {
         tournaments: Tournaments.find({}).fetch(),
