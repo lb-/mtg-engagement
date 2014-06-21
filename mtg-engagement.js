@@ -1,7 +1,6 @@
-version = '0.3';
+version = '0.4';
 
 if (Meteor.isClient) {
-
   //functions used in helpers & other areas
   var isMatchCompleted = function( games ) {
     return _.every( games, function( game ) {
@@ -88,9 +87,7 @@ if (Meteor.isClient) {
     return false;
   });
   UI.registerHelper( 'currentRouteNameEquals', function( x ) {
-    //var currentRouteName = Router.current().route.name;
     var current = Router.current();
-    //console.log(current && current.path, x, _.includes( current && current.path, x ));
     if ( _.str.include( current && current.path, x ) ) {
       return true
     }
@@ -102,7 +99,6 @@ if (Meteor.isClient) {
     var playersByTotals = {};
     var totals = [];
     _.each( totalPointsByPlayerName, function( total, name ) {
-      //rankings.push({ total: total, name: name });
       totals.push( parseInt(total) );
       if ( _.has( playersByTotals, total ) ) {
         playersByTotals[total].push( name );
@@ -110,20 +106,12 @@ if (Meteor.isClient) {
         playersByTotals[total] = [ name ];
       }
     });
-    //console.log(playersByTotals);
-
     var sortedUniqeTotals = _.uniq( _.sortBy( totals, function( num ) {return num} ), true).reverse();
-    //var x = _.sortBy(totals, function( num ) {return num});
-    //console.log(totals, sortedUniqeTotals);
     _.each( sortedUniqeTotals , function( totalNum, index ) {
-      //console.log(index);
       _.each( playersByTotals[ totalNum ], function( name ) {
-        //console.log(index);
         rankings.push({ total: totalNum, name: name , rank: index + 1 });
       });
     });
-    //rankings = _.sortBy( rankings, function( rank ) { return 0 - rank });
-    //console.log(rankings);
     return rankings;
   });
   UI.registerHelper( 'rankingLabelClass', function( rank ) {
@@ -168,7 +156,6 @@ if (Meteor.isClient) {
     return "progress-bar-success";
   });
   UI.registerHelper( 'gameIcon', function() {
-    // console.log(this)
     if ( this.game.state === null) {
       return "fa-circle-thin";
     } else if ( this.game.state === this.player ) {
@@ -186,21 +173,18 @@ if (Meteor.isClient) {
   });
   UI.registerHelper( 'playerTotalMatches', function( status ) {
     var playerName = this.name;
-    //console.log(this, status);
     if ( status == undefined ) {
       return this.matches.length;
     } else if ( ( status == 'completed' ) || ( status == 'not completed') ) {
       var totals = _.countBy( this.matches, function( match ) {
         return isMatchCompleted( match.games );
       });
-      //console.log(totals);
       if ( status == 'completed' ) {
         return totals[true] || 0;
       }
       return totals[false] || 0;
     } else if ( ( status == 'won' ) || ( status == 'lost') ) {
       var totals = _.countBy( this.matches, function( match ) {
-        //console.log(match.playerX.toUpperCase(), playerName);
         var matchPlayerRef = null;
         if ( match.playerX.toUpperCase() == playerName ) {
           matchPlayerRef = 'x';
@@ -220,12 +204,9 @@ if (Meteor.isClient) {
 
   Template.intro.events({
     'blur .update-tournament' : function( event, template ) {
-      //console.log(this, event, template);
       var $target = $(event.target);
-      //console.log($target);
       var tournamentUpdate = {};
       tournamentUpdate[ $target.data( 'update' ) ] = $target.val();
-      //console.log(this.tournament._id, tournamentUpdate, 'user', Meteor.userId() );
       //update the current template item
       Meteor.call('updateTournament', this.tournament._id, {$set: tournamentUpdate}, Meteor.userId(), function( error, result ) {
         if ( error !== undefined ) {
@@ -260,7 +241,6 @@ if (Meteor.isClient) {
   });
   Template.match.events({
     'click .remove-match' : function( event, template ) {
-      //console.log(this)
       Meteor.call( 'removeMatch', this._id, this.tournament, Meteor.userId(), function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
@@ -270,10 +250,7 @@ if (Meteor.isClient) {
   });
   Template.game.events({
     'click .alternate-game-status' : function( event, template ) {
-      //console.log(this, event, template);
-
       //get the current player
-      //console.log(this, template);
       var currentPlayer = this.player;
       //work out the 'other' player
       var otherPlayer = "x";
@@ -281,7 +258,8 @@ if (Meteor.isClient) {
         otherPlayer = "y";
       }
 
-      //get the current game state (matches player is 'wining', not matches is 'loosing', undefined is not played)
+      //get the current game state (matches player is 'wining',
+        // not matches is 'loosing', undefined is not played)
       var newGameState;
       if ( this.game.state === null ) {
         //game has not been played, set current player to winner.
@@ -293,10 +271,7 @@ if (Meteor.isClient) {
         //current player lst, set the game as unplayed.
         newGameState = null;
       }
-      //console.log(this);
       var tournamentId = this.tournament;
-      //console.log('this',this, 'currentPlayer', currentPlayer, 'otherPlayer', otherPlayer, 'newGameState', newGameState)
-      //save the update usinng a method
       Meteor.call( "updateGame", this.game.matchId, this.game.index, newGameState, tournamentId, Meteor.userId(), function( error, result ) {
         if ( error !== undefined ) {
           console.log( 'error', error );
@@ -319,24 +294,10 @@ if (Meteor.isServer) {
 
 
   Meteor.methods({
-    // test: function() {
-    //   Matches.insert({
-    //     //tournament: '64AJo74PctrqbBMx8',
-    //     tournament: '64AJo74PctrqbBMx8',
-    //     playerX: 'a',
-    //     playerY: ' d',
-    //     //created: Sat Jun 21 2014 17:04:17 GMT+1000 (EST),
-    //     games: [ null, null, null ]
-    //   });
-    //   console.log('test called');
-    // },
     insertMatch: function( newMatch ) {
-      //var newMatch = {};
       newMatch.created = new Date();
       newMatch.games = [null, null, null];
-      //console.log('insertmatch', newMatch);
       var newMatchId = Matches.insert( newMatch );
-      //console.log(newMatchId);
     },
     removeMatch: function( _id, tournamentId, userId ) {
       if ( isTournamentOwner( tournamentId, userId ) ) {
@@ -364,40 +325,10 @@ if (Meteor.isServer) {
   })
 
   Meteor.startup(function () {
-
-    // var lbUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "mail@lb.ee" } } });
-    // var samUser = Meteor.users.findOne({ emails: { $elemMatch: { address: "samuel.davidj@gmail.com" } } });
-    // var userIds = [];
-    //
-    // if ( lbUser !== undefined ) {
-    //   userIds.push(lbUser._id);
-    // }
-    // if ( samUser !== undefined ) {
-    //   userIds.push(samUser._id);
-    // }
-    // //console.log(userIds);
-    // samTournament = {
-    //   name: "Sam J's Epic Tournament",
-    //   date: "Saturday the 21st of June, 2014",
-    //   description: "Battling it out!",
-    //   owners: userIds,
-    //   }
-    // if ( Tournaments.find({}).count() === 0 ) {
-    //   var newTournament = Tournaments.insert(samTournament);
-    // } else {
-    //   var newTournament = Tournaments.findOne( {} )._id;
-    //   Tournaments.update({_id:newTournament}, {$set: samTournament});
-    // }
-    // allMatches = Matches.find( { tournament: null } ).fetch();
-    // _.each( allMatches, function(match) {
-    //   //match = _.extend(match, {tournament:newTournament});
-    //   Matches.update({_id:match._id}, {$set: {tournament:newTournament}});
-    // });
-    
     //currently all tournaments will use the same rounds
     if ( Rounds.find({}).count() === 0 ) {
       var roundOneId = Rounds.insert({
-        name: '1st',//ie. 1st Round
+        name: '1st',
         key: '1',
       });
       var roundTwoId = Rounds.insert({
@@ -417,31 +348,5 @@ if (Meteor.isServer) {
         key: '5',
       });
     }
-    // if ( Matches.find({}).count() === 0 ) {
-    //   Matches.insert({
-    //     playerX: 'LB',
-    //     playerY: 'Andrew',
-    //     round: roundOneId,
-    //     games: [ 'x', 'y', null],
-    //   });
-    //   Matches.insert({
-    //     playerX: 'LB',
-    //     playerY: 'Joe',
-    //     round: roundOneId,
-    //     games: ['x','y',null],
-    //   });
-    //   Matches.insert({
-    //     playerX: 'Philip',
-    //     playerY: 'Poo Face',
-    //     round: roundTwoId,
-    //     games: ['y','x','x'],
-    //   });
-    //   Matches.insert({
-    //     playerX: 'Samuel',
-    //     playerY: 'Artyman',
-    //     round: roundTwoId,
-    //     games: ['x','x','x'],
-    //   });
-    // }
   });
 }

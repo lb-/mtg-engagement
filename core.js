@@ -1,7 +1,5 @@
 isTournamentOwner = function( tournamentId, userId ) {
-  //console.log(tournamentId, userId);
   var tournament = Tournaments.findOne({_id:tournamentId});
-  //console.log(tournament);
   if ( tournament !== undefined ) {
     if ( _.contains( tournament.owners, userId ) ) {
       return true
@@ -30,7 +28,6 @@ getRounds = function( rounds, matches ) {
 
 getPlayers = function( matches ) {
   var playersByName = {};
-  //var playersList = [];
   var processMatches = function( matches, players ) {
     var players = players || ['x','y'];
     _.each ( players, function( playerGene, playerIndex ) {
@@ -39,8 +36,6 @@ getPlayers = function( matches ) {
         return match[playerRef].toUpperCase();
       });
       _.each( matchesGroupedByPlayers, function( matches, playerName, list) {
-        //console.log(this);
-        //playersList.push({name:playerName, matches: matches});
         if ( _.has(playersByName, playerName ) === true ) {
           _.union( playersByName[ playerName ].matches, matches);
         } else {
