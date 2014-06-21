@@ -237,9 +237,11 @@ if (Meteor.isClient) {
 
   Template.newMatch.events({
     'click .insert-match' : function( event, template ) {
+      //console.log('test');
       var newMatch = {};
       newMatch.tournament = this.tournament._id;
-      newMatch.round = this.round;
+      newMatch.round = this.matches[0].round;
+      //console.log(this, template);
       newMatch.playerX = $(template.firstNode).find("[data-player='x']")[0].value;
       newMatch.playerY = $(template.firstNode).find("[data-player='y']")[0].value;
       if ( ( newMatch.playerX === "" ) || ( newMatch.playerY === "" ) ) {
@@ -247,8 +249,10 @@ if (Meteor.isClient) {
       } else if ( newMatch.playerX.toUpperCase() === newMatch.playerY.toUpperCase() ) {
         $(template.firstNode).find(".player-name-duplicate-warning").show();
       } else {
+        //console.log('about to add');
         $(template.firstNode).find(".player-name-warning").hide();
         $(template.firstNode).find(".player-name-duplicate-warning").hide();
+
         Meteor.call( 'insertMatch', newMatch, function( error, result ) {
           if ( error !== undefined ) {
             console.log( 'error', error );
@@ -318,10 +322,24 @@ if (Meteor.isServer) {
 
 
   Meteor.methods({
+    // test: function() {
+    //   Matches.insert({
+    //     //tournament: '64AJo74PctrqbBMx8',
+    //     tournament: '64AJo74PctrqbBMx8',
+    //     playerX: 'a',
+    //     playerY: ' d',
+    //     //created: Sat Jun 21 2014 17:04:17 GMT+1000 (EST),
+    //     games: [ null, null, null ]
+    //   });
+    //   console.log('test called');
+    // },
     insertMatch: function( newMatch ) {
+      //var newMatch = {};
       newMatch.created = new Date();
       newMatch.games = [null, null, null];
-      Matches.insert( newMatch );
+      //console.log('insertmatch', newMatch);
+      var newMatchId = Matches.insert( newMatch );
+      //console.log(newMatchId);
     },
     removeMatch: function( _id, tournamentId, userId ) {
       if ( isTournamentOwner( tournamentId, userId ) ) {
@@ -378,7 +396,7 @@ if (Meteor.isServer) {
     //   //match = _.extend(match, {tournament:newTournament});
     //   Matches.update({_id:match._id}, {$set: {tournament:newTournament}});
     // });
-
+    
     //currently all tournaments will use the same rounds
     if ( Rounds.find({}).count() === 0 ) {
       var roundOneId = Rounds.insert({

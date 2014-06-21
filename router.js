@@ -28,7 +28,13 @@ Router.map(function() {
     },
     data: function() {
       var rounds = Rounds.find( {}, { sort: { key: 1 } } ).fetch();
+      //var allMatches = Matches.find().count();
       var matches = Matches.find( { tournament: this.params._id } ).fetch();
+      
+      var otherMatches = Matches.find( { tournament: {$not: this.params._id} } ).fetch();
+      console.log(otherMatches);
+      //var matches = Matches.find( { } ).fetch();
+      ///console.log(matches.length, this.params);
       var tournament = Tournaments.findOne( { _id: this.params._id } ) || {};
       return {
         rounds: getRounds( rounds, matches ),
