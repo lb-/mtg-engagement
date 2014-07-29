@@ -1,0 +1,6 @@
+.compact {
+  margin-bottom:0px;
+}
+.list-group-item.compact {
+  padding-top: 5px;
+}

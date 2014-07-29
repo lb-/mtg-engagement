@@ -95,7 +95,7 @@
       {{/if}}
     </div>
     <ul class="list-group">
-      <li class="list-group-item">
+      <li class="list-group-item compact">
         <div class="row">
           {{#each games}}
             {{>game player='x' game=. tournament=../tournament}}
@@ -174,7 +174,7 @@
 
 <template name="game">
   <div class="col-xs-4 alternate-game-status">
-    <p class="text-center">
+    <p class="text-center compact">
       <i class="fa fa-2x {{gameIcon player game}}"></i>
     </p>
   </div>
